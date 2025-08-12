@@ -1,19 +1,16 @@
 #!/bin/bash
-
 set -e
-
-echo "Detecting OS..."
 
 if [ -f /etc/fedora-release ]; then
     echo "Fedora detected."
-    sudo dnf install -y curl
+    sudo dnf install -y rust cargo
 elif [ -f /etc/lsb-release ] || [ -f /etc/debian_version ]; then
     echo "Ubuntu/Debian detected."
     sudo apt-get update
-    sudo apt-get install -y curl
+    sudo apt-get install -y cargo
 else
-    echo "Unsupported OS. Exiting."
+    echo "Unsupported OS."
     exit 1
 fi
 
-echo "Installation completed successfully."
+echo "Cargo installation complete."
