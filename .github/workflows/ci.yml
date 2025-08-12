@@ -1,0 +1,24 @@
+name: Validator Server CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+          - os: ubuntu-latest
+            container: fedora:latest
+
+    runs-on: ${{ matrix.os }}
+    container: ${{ matrix.container || '' }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash ./install.sh
