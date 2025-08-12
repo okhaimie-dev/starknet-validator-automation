@@ -1,0 +1,34 @@
+name: Validator Server CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            pkg_install: sudo apt-get update && sudo apt-get install -y curl jq
+          - os: ubuntu-latest
+            container: fedora:latest
+            pkg_install: sudo dnf install -y curl jq
+
+    runs-on: ${{ matrix.os }}
+    container: ${{ matrix.container || '' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: ${{ matrix.pkg_install }}
+
+      - name: Run install.sh
+        run: bash ./install.sh
