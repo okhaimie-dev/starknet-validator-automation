@@ -15,8 +15,8 @@ case "$ID" in
         ;;
     ubuntu|debian)
         echo "Ubuntu/Debian detected."
-        sudo apt update
-        sudo apt install -y cargo
+        sudo apt-get update
+        sudo apt-get install -y cargo
         ;;
     *)
         echo "Unsupported OS: '$ID'. Exiting." >&2
