@@ -133,6 +133,7 @@
           get_url:
             url: https://juno-snapshots.nethermind.io/files/sepolia/latest
             dest: "{{ selected_mount.mount }}/snapshot.tar.zst"
+            tmp_dest: "{{ selected_mount.mount }}"  # Use same mount for temp
             timeout: 21600
 
         - name: Extract snapshot
