@@ -125,20 +125,41 @@
         path: "{{ selected_mount.mount }}/snapshots"
         state: directory
         mode: '0755'
+      when: selected_mount is defined
 
-    - name: Download and extract snapshot
-      shell: |
-        curl -s -L https://juno-snapshots.nethermind.io/files/sepolia/latest \
-        | zstd -d | tar -xvf - -C {{ selected_mount.mount }}/snapshots
-      async: 21600
-      poll: 60
-      register: snapshot_download
+    - name: Download and extract snapshot with error handling
+      block:
+        - name: Download and extract snapshot
+          shell: |
+            curl -s -L https://juno-snapshots.nethermind.io/files/sepolia/latest \
+            | zstd -d | tar -xvf - -C {{ selected_mount.mount }}/snapshots
+          async: 21600
+          poll: 60
+          register: snapshot_download
+          when: selected_mount is defined
       rescue:
         - name: Cleanup on failure
           file:
             path: "{{ selected_mount.mount }}/snapshots"
             state: absent
-        - fail:
+          when: selected_mount is defined
+        - name: Fail with cleanup message
+          fail:
             msg: "Download failed. Check connectivity and disk space. Cleaned up partial files."
-      
-        
+
+    - name: Validate snapshot extraction
+      find:
+        paths: "{{ selected_mount.mount }}/snapshots"
+        file_type: any
+      register: extracted_files
+      when: selected_mount is defined
+
+    - name: Display extraction results
+      debug:
+        msg: "Snapshot extraction completed. Found {{ extracted_files.matched }} files/directories"
+      when: selected_mount is defined and extracted_files.matched > 0
+
+    - name: Fail if no files extracted
+      fail:
+        msg: "Snapshot extraction failed - no files found in snapshots directory"
+      when: selected_mount is defined and extracted_files.matched == 0
