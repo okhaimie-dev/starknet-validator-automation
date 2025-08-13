@@ -112,5 +112,33 @@
       debug:
         msg: "Docker test successful"
       when: docker_hello.rc == 0
+
+- name: Test connectivity to snapshot URL
+  uri:
+    url: https://juno-snapshots.nethermind.io/files/sepolia/latest
+    method: HEAD
+    timeout: 30
+  register: connectivity_test
+
+- name: Create snapshots directory
+  file:
+    path: "{{ selected_mount.mount }}/snapshots"
+    state: directory
+    mode: '0755'
+
+- name: Download and extract snapshot
+  shell: |
+    curl -s -L https://juno-snapshots.nethermind.io/files/sepolia/latest \
+    | zstd -d | tar -xvf - -C {{ selected_mount.mount }}/snapshots
+  async: 21600
+  poll: 60
+  register: snapshot_download
+  rescue:
+    - name: Cleanup on failure
+      file:
+        path: "{{ selected_mount.mount }}/snapshots"
+        state: absent
+    - fail:
+        msg: "Download failed. Check connectivity and disk space. Cleaned up partial files."
   
     
