@@ -129,14 +129,22 @@
 
     - name: Download and extract snapshot with error handling
       block:
-        - name: Download and extract snapshot
-          shell: |
-            curl -s -L https://juno-snapshots.nethermind.io/files/sepolia/latest \
-            | zstd -d | tar -xvf - -C {{ selected_mount.mount }}/snapshots
-          async: 21600
-          poll: 60
-          register: snapshot_download
-          when: selected_mount is defined
+        - name: Download snapshot file
+          get_url:
+            url: https://juno-snapshots.nethermind.io/files/sepolia/latest
+            dest: "{{ selected_mount.mount }}/snapshot.tar.zst"
+            timeout: 21600
+
+        - name: Extract snapshot
+          shell: zstd -d {{ selected_mount.mount }}/snapshot.tar.zst | tar -xvf - -C {{ selected_mount.mount }}/snapshots
+        # - name: Download and extract snapshot
+        #   shell: |
+        #     curl -s -L https://juno-snapshots.nethermind.io/files/sepolia/latest \
+        #     | zstd -d | tar -xvf - -C {{ selected_mount.mount }}/snapshots
+        #   async: 21600
+        #   poll: 60
+        #   register: snapshot_download
+        #   when: selected_mount is defined
       rescue:
         - name: Cleanup on failure
           file:
@@ -163,3 +171,23 @@
       fail:
         msg: "Snapshot extraction failed - no files found in snapshots directory"
       when: selected_mount is defined and extracted_files.matched == 0
+
+    - name: Pull Juno Docker container
+      command: docker pull nethermind/juno
+      register: docker_pull_result
+      become_user: "{{ ansible_user_id }}"
+
+    - name: Display Docker pull result
+      debug:
+        msg: "Juno container pulled successfully"
+      when: docker_pull_result.rc == 0
+
+    - name: Verify Juno container is available
+      command: docker images nethermind/juno
+      register: juno_image_check
+      become_user: "{{ ansible_user_id }}"
+
+    - name: Display Juno image info
+      debug:
+        msg: "Juno container ready: {{ juno_image_check.stdout_lines[1] if juno_image_check.stdout_lines | length > 1 else 'Image available' }}"
+      when: juno_image_check.rc == 0
