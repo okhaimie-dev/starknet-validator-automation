@@ -1,8 +1,24 @@
 ---
 - hosts: localhost
   connection: local
-  gather_facts: no
+  gather_facts: yes
+  vars:
+    required_storage_gb: 500
   tasks:
     - name: Test ping
       ansible.builtin.ping:
-      
+
+    - name: Check available storage on all mount points
+      set_fact:
+        storage_check: "{{ ansible_mounts | selectattr('size_available', '>=', required_storage_gb * 1024 * 1024 * 1024) | list }}"
+    
+    - name: Display mount points with available space
+      debug:
+        msg: "Mount: {{ item.mount }} | Available: {{ (item.size_available / 1024 / 1024 / 1024) | round(2) }}GB | Total: {{ (item.size_total / 1024 / 1024 / 1024) | round(2) }}GB"
+      loop: "{{ ansible_mounts }}"
+      when: item.size_available >= required_storage_gb * 1024 * 1024 * 1024
+    
+    - name: Fail if insufficient storage
+      fail:
+        msg: "No mount point has {{ required_storage_gb }}GB available. Largest available: {{ (ansible_mounts | map(attribute='size_available') | max / 1024 / 1024 / 1024) | round(2) }}GB"
+      when: storage_check | length == 0
