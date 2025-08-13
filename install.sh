@@ -11,17 +11,25 @@ fi
 case "$ID" in
     fedora)
         echo "Fedora detected."
-        sudo dnf install -y rust cargo
+        sudo dnf install -y rust cargo ansible
         ;;
     ubuntu|debian)
         echo "Ubuntu/Debian detected."
         sudo apt-get update
-        sudo apt-get install -y cargo
+        sudo apt-get install -y cargo ansible
         ;;
     *)
-        echo "Unsupported OS: '$ID'. Exiting." >&2
+        echo "Unsupported OS: '$ID'. Please report in issues for OS installation support." >&2
         exit 1
         ;;
 esac
 
-echo "Cargo installation complete."
+# Verify installations
+command -v cargo >/dev/null 2>&1 || { echo "Cargo installation failed" >&2; exit 1; }
+command -v ansible >/dev/null 2>&1 || { echo "Ansible installation failed" >&2; exit 1; }
+
+echo "Installation complete."
+
+
+ansible-playbook -c local test.yml
+
