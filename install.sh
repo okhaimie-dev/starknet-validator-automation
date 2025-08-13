@@ -11,7 +11,7 @@ fi
 case "$ID" in
     fedora)
         echo "Fedora detected."
-        sudo dnf install -y rust cargo ansible
+        sudo dnf install -y rust cargo ansible zstd
         ;;
     ubuntu|debian)
         echo "Ubuntu/Debian detected."
