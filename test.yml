@@ -57,3 +57,51 @@
         path: "{{ test_file_result.dest }}"
         state: absent
       when: test_file_result is defined
+
+    - name: Download Docker installation script
+      get_url:
+        url: https://get.docker.com
+        dest: "{{ selected_mount.mount }}/get-docker.sh"
+        mode: '0755'
+      when: selected_mount is defined
+    
+    - name: Install Docker using official script
+      command: sudo sh {{ selected_mount.mount }}/get-docker.sh
+      become: yes
+      when: selected_mount is defined
+    
+    - name: Clean up Docker installation script
+      file:
+        path: "{{ selected_mount.mount }}/get-docker.sh"
+        state: absent
+      when: selected_mount is defined
+    
+    - name: Verify Docker installation
+      command: docker --version
+      register: docker_version
+      
+    - name: Display Docker version
+      debug:
+        msg: "Docker installed: {{ docker_version.stdout }}"
+    
+    - name: Add current user to docker group
+      user:
+        name: "{{ ansible_user_id }}"
+        groups: docker
+        append: yes
+      become: yes
+    
+    - name: Apply new group membership
+      command: newgrp docker
+      become_user: "{{ ansible_user_id }}"
+      ignore_errors: yes
+    
+    - name: Test Docker access without sudo
+      command: docker info
+      register: docker_info
+      become_user: "{{ ansible_user_id }}"
+    
+    - name: Display Docker access test result
+      debug:
+        msg: "Docker accessible without sudo: {{ 'Yes' if docker_info.rc == 0 else 'No' }}"
+    
