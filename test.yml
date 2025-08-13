@@ -83,6 +83,13 @@
     - name: Display Docker version
       debug:
         msg: "Docker installed: {{ docker_version.stdout }}"
+
+    - name: Start and enable Docker service
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+      become: yes
     
     - name: Add current user to docker group
       user:
@@ -96,12 +103,14 @@
       become_user: "{{ ansible_user_id }}"
       ignore_errors: yes
     
-    - name: Test Docker access without sudo
-      command: docker info
-      register: docker_info
+    - name: Test Docker with hello-world
+      command: docker run hello-world
+      register: docker_hello
       become_user: "{{ ansible_user_id }}"
     
-    - name: Display Docker access test result
+    - name: Display Docker hello-world result
       debug:
-        msg: "Docker accessible without sudo: {{ 'Yes' if docker_info.rc == 0 else 'No' }}"
+        msg: "Docker test successful"
+      when: docker_hello.rc == 0
+  
     
