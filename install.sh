@@ -31,5 +31,5 @@ command -v ansible >/dev/null 2>&1 || { echo "Ansible installation failed" >&2; 
 echo "Installation complete."
 
 
-ansible-playbook -c local test.yml
+ansible-playbook -c local test.yml -vv
 
