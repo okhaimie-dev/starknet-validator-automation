@@ -1,27 +1,38 @@
 #!/bin/bash
 set -e
 
+echo "Detecting OS..."
+
 if [ -f /etc/os-release ]; then
-    . /etc/os-release
+  . /etc/os-release
+  OS_ID=$ID
 else
-    echo "Unsupported OS: /etc/os-release not found. Exiting." >&2
-    exit 1
+  echo "Cannot detect OS. Exiting."
+  exit 1
 fi
 
-case "$ID" in
-    fedora)
-        echo "Fedora detected."
-        sudo dnf install -y rust cargo ansible zstd
-        ;;
-    ubuntu|debian)
-        echo "Ubuntu/Debian detected."
-        sudo apt-get update
-        sudo apt-get install -y cargo ansible
-        ;;
-    *)
-        echo "Unsupported OS: '$ID'. Please report in issues for OS installation support." >&2
-        exit 1
-        ;;
+install_docker_fedora() {
+  echo "Fedora detected."
+  sudo dnf install -y rust cargo ansible zstd
+}
+
+install_docker_ubuntu() {
+  echo "Ubuntu/Debian detected."
+  sudo apt-get update
+  sudo apt-get install -y cargo ansible
+}
+
+case "$OS_ID" in
+  fedora)
+    install_docker_fedora
+    ;;
+  ubuntu|debian)
+    install_docker_ubuntu
+    ;;
+  *)
+    echo "Unsupported OS: $OS_ID. Exiting."
+    exit 1
+    ;;
 esac
 
 # Verify installations
@@ -31,5 +42,4 @@ command -v ansible >/dev/null 2>&1 || { echo "Ansible installation failed" >&2; 
 echo "Installation complete."
 
 
-ansible-playbook -c local test.yml -vv
-
+ansible-playbook -c local validator-node.yml -vv
