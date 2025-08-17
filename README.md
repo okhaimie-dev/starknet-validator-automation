@@ -13,7 +13,7 @@ This repository contains automation scripts for setting up a Starknet validator 
 
 1. Clone this repository:
 ```bash
-git clone https://github.com/yourusername/starknet-validator-automation.git
+git clone https://github.com/okhaimie-dev/starknet-validator-automation.git
 cd starknet-validator-automation
 ```
 
@@ -93,7 +93,7 @@ Contributions are welcome! Please:
 
 ## License
 
-[Add your license information here]
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 ## Security
 
