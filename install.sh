@@ -13,13 +13,13 @@ fi
 
 install_dependencies_fedora() {
   echo "Installing dependencies for Fedora..."
-  sudo dnf install -y ansible
+  sudo dnf install -y ansible zstd curl
 }
 
 install_dependencies_ubuntu() {
   echo "Installing dependencies for Ubuntu/Debian..."
   sudo apt-get update
-  sudo apt-get install -y ansible
+  sudo apt-get install -y ansible zstd curl
 }
 
 case "$OS_ID" in
