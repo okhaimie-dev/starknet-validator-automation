@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "Detecting OS..."
+echo "OS Detection..."
 
 if [ -f /etc/os-release ]; then
   . /etc/os-release
@@ -12,12 +12,12 @@ else
 fi
 
 install_dependencies_fedora() {
-  echo "Fedora detected."
+  echo "Installing dependencies for Fedora..."
   sudo dnf install -y ansible
 }
 
 install_dependencies_ubuntu() {
-  echo "Ubuntu/Debian detected."
+  echo "Installing dependencies for Ubuntu/Debian..."
   sudo apt-get update
   sudo apt-get install -y ansible
 }
@@ -30,7 +30,7 @@ case "$OS_ID" in
     install_dependencies_ubuntu
     ;;
   *)
-    echo "Unsupported OS: $OS_ID. Exiting."
+    echo "Unsupported OS: '$OS_ID'. Please report this in an issue to add support." >&2
     exit 1
     ;;
 esac
@@ -38,6 +38,6 @@ esac
 # Verify installations
 command -v ansible >/dev/null 2>&1 || { echo "Ansible installation failed" >&2; exit 1; }
 
-echo "Installation complete."
+echo "Dependencies installed successfully."
 
 ansible-playbook -c local validator-node.yml -vv
