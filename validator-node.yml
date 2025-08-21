@@ -3,7 +3,7 @@
   connection: local
   gather_facts: yes
   vars:
-    required_storage_gb: 1024
+    required_storage_gb: 500
   tasks:
     - name: Test ping
       ansible.builtin.ping:
@@ -58,61 +58,6 @@
         state: absent
       when: test_file_result is defined
 
-    - name: Download Docker installation script
-      get_url:
-        url: https://get.docker.com
-        dest: "{{ selected_mount.mount }}/get-docker.sh"
-        mode: "0755"
-      when: selected_mount is defined
-
-    - name: Install Docker using official script
-      command: sudo sh {{ selected_mount.mount }}/get-docker.sh
-      become: yes
-      when: selected_mount is defined
-
-    - name: Clean up Docker installation script
-      file:
-        path: "{{ selected_mount.mount }}/get-docker.sh"
-        state: absent
-      when: selected_mount is defined
-
-    - name: Verify Docker installation
-      command: docker --version
-      register: docker_version
-
-    - name: Display Docker version
-      debug:
-        msg: "Docker installed: {{ docker_version.stdout }}"
-
-    - name: Start and enable Docker service
-      systemd:
-        name: docker
-        state: started
-        enabled: yes
-      become: yes
-
-    - name: Add current user to docker group
-      user:
-        name: "{{ ansible_user_id }}"
-        groups: docker
-        append: yes
-      become: yes
-
-    - name: Apply new group membership
-      command: newgrp docker
-      become_user: "{{ ansible_user_id }}"
-      ignore_errors: yes
-
-    - name: Test Docker with hello-world
-      command: docker run hello-world
-      register: docker_hello
-      become_user: "{{ ansible_user_id }}"
-
-    - name: Display Docker hello-world result
-      debug:
-        msg: "Docker test successful"
-      when: docker_hello.rc == 0
-
     - name: Test connectivity to snapshot URL
       uri:
         url: https://juno-snapshots.nethermind.io/files/sepolia/latest
@@ -164,23 +109,3 @@
       fail:
         msg: "Snapshot extraction failed - no files found in snapshots directory"
       when: selected_mount is defined and extracted_files.matched == 0
-
-    - name: Pull Juno Docker container
-      command: docker pull nethermind/juno
-      register: docker_pull_result
-      become_user: "{{ ansible_user_id }}"
-
-    - name: Display Docker pull result
-      debug:
-        msg: "Juno container pulled successfully"
-      when: docker_pull_result.rc == 0
-
-    - name: Verify Juno container is available
-      command: docker images nethermind/juno
-      register: juno_image_check
-      become_user: "{{ ansible_user_id }}"
-
-    - name: Display Juno image info
-      debug:
-        msg: "Juno container ready: {{ juno_image_check.stdout_lines[1] if juno_image_check.stdout_lines | length > 1 else 'Image available' }}"
-      when: juno_image_check.rc == 0
