@@ -20,7 +20,7 @@
    - snapshot_download
   when: 
     - selected_mount is defined
-    - '"download" in ansible_run_tags or ansible_run_tags == ["all"] or "snapshot" in ansible_run_tags'
+    - '"snapshot_download" in ansible_run_tags or ansible_run_tags == ["all"] or "snapshot" in ansible_run_tags'
 
 # Container Deployment Phase
 - name: "Phase 3: Deploy Juno container"
@@ -32,4 +32,4 @@
    - deploy_container
   when:
     - selected_mount is defined
-    - '"deploy" in ansible_run_tags or ansible_run_tags == ["all"] or "container" in ansible_run_tags'
+    - '"deploy_container" in ansible_run_tags or ansible_run_tags == ["all"] or "container" in ansible_run_tags'
