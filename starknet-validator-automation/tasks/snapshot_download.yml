@@ -1,0 +1,52 @@
+---
+- name: Test connectivity to snapshot URL
+  uri:
+    url: https://juno-snapshots.nethermind.io/files/sepolia/latest
+    method: HEAD
+    timeout: 30
+  register: connectivity_test
+
+- name: Create snapshots directory
+  file:
+    path: "{{ selected_mount.mount }}/snapshots"
+    state: directory
+    mode: "0755"
+  when: selected_mount is defined
+
+- name: Download and extract snapshot with error handling
+  block:
+    - name: Stream download and extract
+      shell: |
+        curl -L --retry 10 --retry-delay 30 --continue-at - \
+        https://juno-snapshots.nethermind.io/files/sepolia/latest \
+        | zstd -d | tar -xvf - -C {{ selected_mount.mount }}/snapshots
+      async: 21600 # 6 hours
+      poll: 120 # Check every 2 minutes
+      register: stream_result
+      when: selected_mount is defined
+  rescue:
+    - name: Cleanup on failure
+      file:
+        path: "{{ selected_mount.mount }}/snapshots"
+        state: absent
+      when: selected_mount is defined
+    - name: Fail with cleanup message
+      fail:
+        msg: "Download failed. Check connectivity and disk space. Cleaned up partial files."
+
+- name: Validate snapshot extraction
+  find:
+    paths: "{{ selected_mount.mount }}/snapshots"
+    file_type: any
+  register: extracted_files
+  when: selected_mount is defined
+
+- name: Display extraction results
+  debug:
+    msg: "Snapshot extraction completed. Found {{ extracted_files.matched }} files/directories"
+  when: selected_mount is defined and extracted_files.matched > 0
+
+- name: Fail if no files extracted
+  fail:
+    msg: "Snapshot extraction failed - no files found in snapshots directory"
+  when: selected_mount is defined and extracted_files.matched == 0

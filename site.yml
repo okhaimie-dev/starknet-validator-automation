@@ -1,0 +1,31 @@
+# starknet-validator.yml
+---
+- hosts: localhost
+  connection: local
+  gather_facts: yes
+  
+  vars:
+    required_storage_gb: 500
+    eth_rpc_url: "{{ lookup('env', 'ETH_RPC_URL') | default('') }}"
+
+  tasks:
+    # Mount Detection Phase
+    - name: "Phase 1: Detect and validate storage mounts"
+      include_tasks: tasks/mount_detection.yml
+      tags: ['mount', 'setup']
+
+    # Snapshot Download Phase  
+    - name: "Phase 2: Download and extract Starknet snapshot"
+      include_tasks: tasks/snapshot_download.yml
+      tags: ['snapshot', 'download']
+      when: 
+        - selected_mount is defined
+      # - '"download" in ansible_run_tags or ansible_run_tags == ["all"]'
+
+    # Container Deployment Phase
+    - name: "Phase 3: Deploy Juno container"
+      include_tasks: tasks/container_deployment.yml
+      tags: ['container', 'deploy']
+      when:
+        - selected_mount is defined
+      # - '"deploy" in ansible_run_tags or ansible_run_tags == ["all"]'
