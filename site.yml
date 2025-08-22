@@ -6,5 +6,8 @@
   vars:
     required_storage_gb: 500
     eth_rpc_url: "{{ lookup('env', 'ETH_RPC_URL') | default('') }}"
-  roles:
-    - name: starknet-validator-automation
+
+  tasks:
+
+   - name: Include Starknet validator roles
+     include_role: starknet-validator-automation
