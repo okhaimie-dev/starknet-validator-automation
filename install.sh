@@ -67,4 +67,6 @@ docker --version || { echo "Docker not accessible after group change" >&2; exit 
 echo "Docker test successful!"
 
 # Execute ansible playbook
-ansible-playbook -c local validator-node.yml -vv
+
+echo "Testing mounts"
+ansible-playbook site.yml --tags mount -vv -c local

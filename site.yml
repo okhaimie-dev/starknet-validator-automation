@@ -3,7 +3,7 @@
 - hosts: localhost
   connection: local
   gather_facts: yes
-  
+
   vars:
     required_storage_gb: 500
     eth_rpc_url: "{{ lookup('env', 'ETH_RPC_URL') | default('') }}"
@@ -20,7 +20,7 @@
       tags: ['snapshot', 'download']
       when: 
         - selected_mount is defined
-      # - '"download" in ansible_run_tags or ansible_run_tags == ["all"]'
+        - '"download" in ansible_run_tags or ansible_run_tags == ["all"]'
 
     # Container Deployment Phase
     - name: "Phase 3: Deploy Juno container"
@@ -28,4 +28,4 @@
       tags: ['container', 'deploy']
       when:
         - selected_mount is defined
-      # - '"deploy" in ansible_run_tags or ansible_run_tags == ["all"]'
+        - '"deploy" in ansible_run_tags or ansible_run_tags == ["all"]'
