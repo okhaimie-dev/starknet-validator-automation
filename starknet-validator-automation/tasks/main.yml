@@ -3,9 +3,9 @@
 # Mount Detection Phase
 - name: "Phase 1: Detect and validate storage mounts"
   include_tasks: 
-  file: mount_detection.yml
-  apply:
-    tags: mount
+    file: mount_detection.yml
+    apply:
+      tags: mount
   tags:
    - mount
 
