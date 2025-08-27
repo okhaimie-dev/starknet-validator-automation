@@ -68,5 +68,5 @@ echo "Docker test successful!"
 
 # Execute ansible playbook
 
-echo "Testing mounts"
-ansible-playbook site.yml --tags mount -vv -c local
+
+ansible-playbook site.yml --tags all -vv -c local
