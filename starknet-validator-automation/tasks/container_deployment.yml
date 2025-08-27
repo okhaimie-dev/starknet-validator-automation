@@ -16,13 +16,52 @@
     msg: "ETH_RPC_URL environment variable is required. Please set it with: export ETH_RPC_URL='your_wss_endpoint'"
   when: eth_rpc_url == ""
 
-- name: Stop existing Juno container if running
-  command: docker stop juno
-  ignore_errors: yes
+- name: Check if Juno container is already running
+  command: docker ps -f name=juno -q
+  register: running_containers
+  ignore_errors: true
 
-- name: Remove existing Juno container if exists
+- name: Check Juno HTTP endpoint if container is running
+  uri:
+    url: http://localhost:6060
+    method: GET
+    timeout: 5
+  register: juno_http_check
+  ignore_errors: true
+  when: running_containers.stdout != ""
+
+- name: Check Juno logs for "Stored Block" if HTTP is responding
+  command: docker logs juno --tail 10
+  register: juno_logs_check
+  when: 
+    - running_containers.stdout != ""
+    - juno_http_check.status == 200
+
+- name: Set juno_healthy fact
+  set_fact:
+    juno_healthy: "{{ 'Stored Block' in juno_logs_check.stdout if juno_logs_check is defined else false }}"
+
+- name: Display current Juno status
+  debug:
+    msg: "Juno container is running and healthy - skipping deployment"
+  when: 
+    - running_containers.stdout != ""
+    - juno_http_check.status == 200
+    - juno_healthy
+
+- name: Stop existing Juno container if unhealthy
+  command: docker stop juno
+  ignore_errors: true
+  when: 
+    - running_containers.stdout != ""
+    - not (juno_http_check.status == 200 and juno_healthy)
+
+- name: Remove existing Juno container if unhealthy
   command: docker rm juno
-  ignore_errors: yes
+  ignore_errors: true
+  when: 
+    - running_containers.stdout != ""
+    - not (juno_http_check.status == 200 and juno_healthy)
 
 - name: Run Juno Docker container
   command: >
@@ -30,13 +69,15 @@
     -p 6060:6060 -p 6061:6061
     -v {{ selected_mount.mount }}/snapshots:/snapshots/juno
     nethermind/juno
-    --network sepolia
+    --network {{ starknet_network }}
     --http --http-port 6060 --http-host 0.0.0.0
     --ws --ws-port 6061 --ws-host 0.0.0.0
     --eth-node {{ eth_rpc_url }}
     --db-path /snapshots/juno
   register: juno_container
-  when: selected_mount is defined
+  when: 
+    - selected_mount is defined
+    - not (running_containers.stdout != "" and juno_http_check.status == 200 and juno_healthy)
 
 - name: Display Juno container status
   debug:
@@ -47,8 +88,9 @@
   wait_for:
     port: 6060
     host: localhost
-    delay: 10
-    timeout: 60
+    delay: 30
+    timeout: 300
+  when: juno_container is defined
 
 - name: Verify Juno is running
   uri:
@@ -57,10 +99,24 @@
     timeout: 10
   register: juno_health_check
   ignore_errors: true
+  retries: 5
+  delay: 10
+  when: juno_container is defined
+
+- name: Check Juno container logs if not responding
+  command: docker logs juno --tail 20
+  register: juno_logs
+  when: juno_container is defined and juno_health_check is failed
+
+- name: Display Juno logs
+  debug:
+    msg: "{{ juno_logs.stdout_lines }}"
+  when: juno_logs is defined
 
 - name: Display Juno status
   debug:
-    msg: "Juno is {{ 'running and responding' if juno_health_check.status == 200 else 'not responding' }}"
+    msg: "Juno is {{ 'running and responding' if juno_health_check.status == 200 else 'not responding yet - may still be initializing' }}"
+  when: juno_container is defined
 
 - name: Show connection information
   debug:
@@ -68,4 +124,4 @@
       Juno node is running!
       HTTP endpoint: http://localhost:6060
       WebSocket endpoint: ws://localhost:6061
-      Snapshots mounted from: {{ selected_mount.mount }}/snapshotsd
+      Snapshots mounted from: {{ selected_mount.mount }}/snapshots

@@ -6,6 +6,7 @@
   vars:
     required_storage_gb: 500
     eth_rpc_url: "{{ lookup('env', 'ETH_RPC_URL') | default('') }}"
+    starknet_network: "sepolia"
   
   roles:
     - name: starknet-validator-automation
