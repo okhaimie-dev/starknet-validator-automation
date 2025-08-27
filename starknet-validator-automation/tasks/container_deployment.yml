@@ -52,24 +52,16 @@
   set_fact:
     container_healthy: >-
       {{
-        (juno_logs_check is defined) and (
-          ('Stored block' in (juno_logs_check.stdout | default(''))) or
-          ('Stored block' in (juno_logs_check.stderr | default(''))) or
-          ('Stored Block' in (juno_logs_check.stdout | default(''))) or
-          ('Stored Block' in (juno_logs_check.stderr | default('')))
-        )
+        juno_logs_check is defined and
+        ((juno_logs_check.stderr | default('') | lower) is regex_search('stored block', ignorecase=True))
       }}
     needs_deployment: >-
       {{
         not (container_exists and
              (juno_http_check.status | default(0)) == 200 and
-             (
-               ('Stored block' in (juno_logs_check.stdout | default(''))) or
-               ('Stored block' in (juno_logs_check.stderr | default(''))) or
-               ('Stored Block' in (juno_logs_check.stdout | default(''))) or
-               ('Stored Block' in (juno_logs_check.stderr | default('')))
-             ))
+             ((juno_logs_check.stderr | default('') | lower) is regex_search('stored block', ignorecase=True)))
       }}
+
 
 - name: Display current Juno status
   debug:
