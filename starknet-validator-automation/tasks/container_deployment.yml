@@ -39,7 +39,7 @@
 
 - name: Set juno_healthy fact
   set_fact:
-    juno_healthy: "{{ 'Stored Block' in juno_logs_check.stdout if juno_logs_check is defined else false }}"
+    juno_healthy: "{{ 'Stored Block' in juno_logs_check.stderr if juno_logs_check is defined else false }}"
 
 - name: Display current Juno status
   debug:
@@ -110,8 +110,8 @@
 
 - name: Display Juno logs
   debug:
-    msg: "{{ juno_logs.stdout_lines }}"
-  when: juno_logs is defined
+    msg: "{{ juno_logs.stderr_lines | default([]) }}"
+  when: juno_logs is defined and juno_logs.stderr_lines is defined
 
 - name: Display Juno status
   debug:
