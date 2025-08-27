@@ -1,7 +1,7 @@
 ---
 - name: Test connectivity to snapshot URL
   uri:
-    url: https://juno-snapshots.nethermind.io/files/sepolia/latest
+    url: https://juno-snapshots.nethermind.io/files/{{ starknet_network }}/latest
     method: HEAD
     timeout: 30
   register: connectivity_test
@@ -18,7 +18,7 @@
     - name: Stream download and extract
       shell: |
         curl -L --retry 10 --retry-delay 30 --continue-at - \
-        https://juno-snapshots.nethermind.io/files/sepolia/latest \
+        https://juno-snapshots.nethermind.io/files/{{ starknet_network }}/latest \
         | zstd -d | tar -xvf - -C {{ selected_mount.mount }}/snapshots
       async: 21600 # 6 hours
       poll: 120 # Check every 2 minutes
@@ -49,4 +49,5 @@
 - name: Fail if no files extracted
   fail:
     msg: "Snapshot extraction failed - no files found in snapshots directory"
+
   when: selected_mount is defined and extracted_files.matched == 0
