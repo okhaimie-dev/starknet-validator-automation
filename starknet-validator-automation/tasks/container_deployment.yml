@@ -53,13 +53,15 @@
     container_healthy: >-
       {{
         juno_logs_check is defined and
-        ((juno_logs_check.stderr | default('') | lower) is regex_search('stored block', ignorecase=True))
+        ('stored block' in (juno_logs_check.stderr | default('') | lower))
       }}
     needs_deployment: >-
       {{
-        not (container_exists and
-             (juno_http_check.status | default(0)) == 200 and
-             ((juno_logs_check.stderr | default('') | lower) is regex_search('stored block', ignorecase=True)))
+        not (
+          container_exists and
+          (juno_http_check.status | default(0)) == 200 and
+          ('stored block' in (juno_logs_check.stderr | default('') | lower))
+        )
       }}
 
 
