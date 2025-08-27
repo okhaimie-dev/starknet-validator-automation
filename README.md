@@ -50,7 +50,6 @@ The automation performs the following tasks:
 ## Directory Structure
 
 - `install.sh` - Main installation script
-- `validator-node.yml` - Ansible playbook for node setup
 - `README.md` - This documentation file
 
 ## Troubleshooting
