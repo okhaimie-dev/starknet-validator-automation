@@ -17,7 +17,7 @@ install_dependencies_fedora() {
   
   echo "Installing Docker for Fedora..."
   sudo dnf -y install dnf-plugins-core
-  sudo dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
+  sudo dnf-3 config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
   sudo dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
   sudo systemctl enable --now docker
   sudo usermod -aG docker $USER
@@ -67,4 +67,6 @@ docker --version || { echo "Docker not accessible after group change" >&2; exit 
 echo "Docker test successful!"
 
 # Execute ansible playbook
-ansible-playbook -c local validator-node.yml -vv
+
+
+ansible-playbook site.yml --tags all -vv -c local

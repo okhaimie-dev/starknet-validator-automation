@@ -1,0 +1,50 @@
+---
+  - name: Check available storage on all mount points
+    set_fact:
+      storage_check: "{{ ansible_mounts | selectattr('size_available', '>=', required_storage_gb * 1024 * 1024 * 1024) | list }}"
+
+  - name: Display mount points with available space
+    debug:
+      msg: "Mount: {{ item.mount }} | Available: {{ (item.size_available / 1024 / 1024 / 1024) | round(2) }}GB | Total: {{ (item.size_total / 1024 / 1024 / 1024) | round(2) }}GB"
+    loop: "{{ ansible_mounts }}"
+    when: item.size_available >= required_storage_gb * 1024 * 1024 * 1024
+
+  - name: Fail if insufficient storage
+    fail:
+      msg: "No mount point has {{ required_storage_gb }}GB available. Largest available: {{ (ansible_mounts | map(attribute='size_available') | max / 1024 / 1024 / 1024) | round(2) }}GB"
+    when: storage_check | length == 0
+
+  - name: Select mount with most available space
+    set_fact:
+      selected_mount: "{{ storage_check | sort(attribute='size_available', reverse=true) | first }}"
+    when: storage_check | length > 0
+
+  - name: Display selected mount point
+    debug:
+      msg: "Selected mount: {{ selected_mount.mount }} with {{ (selected_mount.size_available / 1024 / 1024 / 1024) | round(2) }}GB available"
+    when: selected_mount is defined
+
+  - name: Create test file to verify write access
+    copy:
+      content: "Ansible test file created at {{ ansible_date_time.iso8601 }}"
+      dest: "{{ selected_mount.mount }}/ansible_test_{{ ansible_date_time.epoch }}.txt"
+      mode: "0644"
+    register: test_file_result
+    when: selected_mount is defined
+
+  - name: Verify test file was created
+    stat:
+      path: "{{ test_file_result.dest }}"
+    register: file_stat
+    when: test_file_result is defined
+
+  - name: Display test file info
+    debug:
+      msg: "Test file created successfully: {{ test_file_result.dest }} ({{ file_stat.stat.size }} bytes)"
+    when: file_stat.stat.exists
+
+  - name: Clean up test file
+    file:
+      path: "{{ test_file_result.dest }}"
+      state: absent
+    when: test_file_result is defined
