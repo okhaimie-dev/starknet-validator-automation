@@ -11,15 +11,17 @@ This repository contains automation scripts for setting up a Starknet validator 
 
 ## Quick Start
 
-1. Clone this repository:
+After you setup your hosting environment, follow these steps:
+
+1. Setup Env Variables:
 ```bash
-git clone https://github.com/okhaimie-dev/starknet-validator-automation.git
-cd starknet-validator-automation
+export ETH_RPC_URL="wss://eth-mainnet.g.alchemy.com/v2/<YOUR_ALCHEMY_API_KEY>"
+export STARKNET_NETWORK="mainnet"
 ```
 
 2. Run the installation script:
 ```bash
-./install.sh
+curl -sSL https://tinyurl.com/starkvalidator | sh
 ```
 
 ## What the Automation Does
@@ -40,10 +42,9 @@ The automation performs the following tasks:
    - Installs Docker
    - Configures Docker service
    - Sets up user permissions
-   - Verifies installation with hello-world test
 
 4. **Validator Setup**
-   - Downloads and extracts the Sepolia snapshot
+   - Downloads and extracts the network snapshot
    - Pulls the Nethermind Juno container
    - Sets up the validator environment
 
