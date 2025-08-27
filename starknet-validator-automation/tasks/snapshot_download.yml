@@ -1,7 +1,7 @@
 ---
 - name: Test connectivity to snapshot URL
   uri:
-    url: https://juno-snapshots.nethermind.io/files/sepolia/latest
+    url: https://juno-snapshots.nethermind.io/files/{{ starknet_network }}/latest
     method: HEAD
     timeout: 30
   register: connectivity_test
