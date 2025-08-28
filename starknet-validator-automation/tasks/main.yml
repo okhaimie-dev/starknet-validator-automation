@@ -1,13 +1,12 @@
 # starknet-validator-automation/tasks/main.yml
 ---
-- name: Debug variables
-  debug:
-    var: "{{ item }}"
-  loop:
-    - required_storage_gb
-    - eth_rpc_url
-    - starknet_network
-  tags: vars
+- name: "Phase 0: Detect and validate vars"
+  include_tasks: 
+    file: detect_vars.yml
+    apply:
+      tags: vars
+  tags:
+   - vars
 
 # Mount Detection Phase
 # Nice gotcha https://docs.ansible.com/ansible/latest/collections/ansible/builtin/include_tasks_module.html

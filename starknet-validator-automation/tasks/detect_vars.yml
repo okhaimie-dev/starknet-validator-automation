@@ -1,0 +1,8 @@
+---
+- name: Debug variables
+  debug:
+    var: "{{ item }}"
+  loop:
+    - required_storage_gb
+    - eth_rpc_url
+    - starknet_network
