@@ -71,4 +71,4 @@ echo "Docker test successful!"
 
 ansible-playbook site.yml --tags all -c local
 
-echo "Starknet node has been successfully deploy!"
+echo "Starknet node deployed successfully!"
