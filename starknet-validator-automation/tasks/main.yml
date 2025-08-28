@@ -1,5 +1,14 @@
 # starknet-validator-automation/tasks/main.yml
 ---
+- name: Debug variables
+  debug:
+    var: "{{ item }}"
+  loop:
+    - required_storage_gb
+    - eth_rpc_url
+    - starknet_network
+  tags: vars
+
 # Mount Detection Phase
 # Nice gotcha https://docs.ansible.com/ansible/latest/collections/ansible/builtin/include_tasks_module.html
 - name: "Phase 1: Detect and validate storage mounts"

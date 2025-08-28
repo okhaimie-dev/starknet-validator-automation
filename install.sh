@@ -69,4 +69,4 @@ echo "Docker test successful!"
 # Execute ansible playbook
 
 
-ansible-playbook site.yml --tags all -vv -c local
+ansible-playbook site.yml --tags all -c local
