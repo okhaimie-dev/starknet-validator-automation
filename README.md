@@ -7,7 +7,7 @@ This repository contains automation scripts for setting up a Starknet validator 
 - Operating System: Fedora, Ubuntu, or Debian
 - Minimum 1024GB of available storage
 - Root/sudo access
-- Internet connection
+- ETH RPC (wss://): (e.g., [Alchemy](https://www.alchemy.com/), [Blast](https://blastapi.io/), or setup a local node.)
 
 ## Quick Start
 
